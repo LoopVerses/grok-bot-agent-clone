@@ -4,6 +4,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { users } from "@/db/schema";
 import { db } from "@/db";
 
+/**
+ * Creates a database user from the authenticated session's name and email.
+ *
+ * @param request - The incoming request; its body is unused.
+ * @returns A JSON response with status 200 on creation, 401 for a missing session
+ * email, 400 for an existing user, or 500 if the database operation fails.
+ */
 export async function POST(request: Request) {
     const session =await getServerSession(authOptions);
 
