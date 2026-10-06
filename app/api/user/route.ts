@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { users } from "@/db/schema";
+import { db } from "@/db";
+
+export async function POST(request: Request) {
+    const session =await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try{
+     const result = await db.insert(users).values({
+        name: session.user.name,
+        email: session.user.email,
+     }).onConflictDoNothing({
+        target: users.email
+     }).returning();
+     
+     if (result.length === 0) {
+        return NextResponse.json({ error: "User already exists" }, { status: 400 });
+     }
+
+     return NextResponse.json({ message: "User created successfully" }, { status: 200 });
+    }
+
+    catch (e) {
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+
+}
